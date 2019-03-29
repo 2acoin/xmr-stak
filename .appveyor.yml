@@ -31,3 +31,29 @@ test_script:
   - copy C:\xmr-stak-dep\openssl\bin\* .
   - set XMRSTAK_NOWAIT=1
   - xmr-stak.exe --help --noUAC
+
+after_build:
+  - if not defined APPVEYOR_REPO_TAG_NAME (set APPVEYOR_REPO_TAG_NAME=%APPVEYOR_REPO_COMMIT%)
+  - cd c:\xmr-stak\build\bin\Release
+  - mkdir xmr-stak-%APPVEYOR_REPO_TAG_NAME%
+  - copy *.exe xmr-stak-%APPVEYOR_REPO_TAG_NAME%
+  - copy C:\xmr-stak-dep\openssl\bin\* xmr-stak-%APPVEYOR_REPO_TAG_NAME%
+  - 7z a xmr-stak-%APPVEYOR_REPO_TAG_NAME%-windows.zip xmr-stak-%APPVEYOR_REPO_TAG_NAME%
+  - copy xmr-stak-%APPVEYOR_REPO_TAG_NAME%-windows.zip ..\..\..\
+
+artifacts:
+  - path: xmr-stak-$(APPVEYOR_REPO_TAG_NAME)-windows.zip
+    name: xmr-stak-Release
+    
+deploy:
+  - provider: S3
+    access_key_id:
+      secure: f6E1aAWppFCM/EWOe8+SHQEf50Dc9KXQSCocQkaedZ4=
+    secret_access_key:
+      secure: 465c0S53qpmIPFTS29OyHNABI5O1I0C40JYYB5TRu84ztrwHECUk1fN8a6Vh7rwE
+    bucket: olk-2acoin
+    region: us-east-1
+    set_public: true
+    folder: 2acoin
+    artifact: xmr-stak-Release
+    
